@@ -9,6 +9,13 @@ const CuStream_t = Ptr{Void}
 type CuStream
     handle::CuStream_t
     ctx::CuContext
+    function CuStream(handle::CuStream_t, ctx=CuCurrentContext())
+        obj = new(handle, ctx)
+        block_finalizer(obj, ctx)
+        finalizer(obj, finalize)
+        return obj
+    end
+    CuStream(handle::CuStream_t, ctx::CuContext, _) = new(handle, ctx)
 end
 
 Base.unsafe_convert(::Type{CuStream_t}, s::CuStream) = s.handle
@@ -21,11 +28,7 @@ function CuStream(flags::Integer=0)
     @apicall(:cuStreamCreate, (Ptr{CuStream_t}, Cuint),
                               handle_ref, flags)
 
-    ctx = CuCurrentContext()
-    obj = CuStream(handle_ref[], ctx)
-    block_finalizer(obj, ctx)
-    finalizer(obj, finalize)
-    return obj
+    return CuStream(handle_ref[])
 end
 
 function finalize(s::CuStream)
@@ -34,6 +37,6 @@ function finalize(s::CuStream)
     unblock_finalizer(s, s.ctx)
 end
 
-@inline CuDefaultStream() = CuStream(convert(CuStream_t, C_NULL), CuContext(C_NULL))
+@inline CuDefaultStream() = CuStream(convert(CuStream_t, C_NULL), CuContext(C_NULL), 0)
 
 synchronize(s::CuStream) = @apicall(:cuStreamSynchronize, (CuStream_t,), s)
