@@ -37,6 +37,7 @@ function finalize(a::CuArray)
     if isvalid(a.devptr.ctx)
         @trace("Finalizing CuArray at $(Base.pointer_from_objref(a))")
         Mem.free(a.devptr)
+        a.devptr = CU_NULL
     else
         @trace("Skipping finalizer for CuArray at $(Base.pointer_from_objref(a))) because context is no longer valid")
     end
@@ -73,7 +74,7 @@ Base.showarray(io::IO, a::CuArray, repr::Bool = true; kwargs...) =
 "Copy an array from host to device in place"
 function Base.copy!{T}(dst::CuArray{T}, src::Array{T})
     if length(dst) != length(src)
-        throw(ArgumentError("Inconsistent array length."))  
+        throw(ArgumentError("Inconsistent array length."))
     end
     Mem.upload(dst.devptr, pointer(src), length(src) * sizeof(T))
     return dst
