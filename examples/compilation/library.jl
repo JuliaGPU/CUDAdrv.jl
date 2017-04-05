@@ -78,10 +78,10 @@ function discover_toolchain()
             nvcc = chomp(readstring(pipeline(`which nvcc`, stderr=DevNull)))
         catch ex
             isa(ex, ErrorException) || rethrow(ex)
-            rethrow(ErrorException("could not find NVCC; consider setting the NVCC environment variable or the CUDA_PATH environment variable"))
+            rethrow(ErrorException("Could not find NVCC; consider setting the NVCC environment variable or the CUDA_PATH environment variable."))
         end
     else
-        throw(ErrorException("could not find NVCC; consider setting the NVCC environment variable or the CUDA_PATH environment variable"))
+        throw(ErrorException("Could not find NVCC; consider setting the NVCC environment variable or the CUDA_PATH environment variable."))
     end
     nvcc_ver = Nullable{VersionNumber}()
     for line in readlines(`$nvcc --version`)
@@ -139,7 +139,7 @@ function discover_toolchain()
         verstring = chomp(readlines(`$hostcc_path --version`)[1])
         m = match(Regex("^$hostcc \\(.*\\) ([0-9.]+)"), verstring)
         if m == nothing
-            warn("could not parse GCC version info (\"$verstring\"), skipping this compiler")
+            warn("Could not parse GCC version info (\"$verstring\"), skipping this compiler.")
             continue
         end
         hostcc_ver = VersionNumber(m.captures[1])
