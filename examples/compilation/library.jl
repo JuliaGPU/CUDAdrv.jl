@@ -70,14 +70,18 @@ const toolchain = Ref{Toolchain}()
 function discover_toolchain()
     # Check availability NVCC
     if haskey(ENV, "NVCC")
-        nvcc = get(ENV, "NVCC")
-    else
+        nvcc = ENV["NVCC"]
+    elseif haskey(ENV, "CUDA_PATH")
+        nvcc = joinpath(ENV["CUDA_PATH"], "bin", "nvcc") * (is_windows() ? ".exe" : "")
+    elseif !is_windows()
         try
             nvcc = chomp(readstring(pipeline(`which nvcc`, stderr=DevNull)))
         catch ex
             isa(ex, ErrorException) || rethrow(ex)
-            rethrow(ErrorException("could not find NVCC -- consider specifying with NVCC environment variable"))
+            rethrow(ErrorException("Could not find NVCC; consider setting the NVCC environment variable or the CUDA_PATH environment variable."))
         end
+    else
+        throw(ErrorException("Could not find NVCC; consider setting the NVCC environment variable or the CUDA_PATH environment variable."))
     end
     nvcc_ver = Nullable{VersionNumber}()
     for line in readlines(`$nvcc --version`)
@@ -135,7 +139,7 @@ function discover_toolchain()
         verstring = chomp(readlines(`$hostcc_path --version`)[1])
         m = match(Regex("^$hostcc \\(.*\\) ([0-9.]+)"), verstring)
         if m == nothing
-            warn("could not parse GCC version info (\"$verstring\"), skipping this compiler")
+            warn("Could not parse GCC version info (\"$verstring\"), skipping this compiler.")
             continue
         end
         hostcc_ver = VersionNumber(m.captures[1])
