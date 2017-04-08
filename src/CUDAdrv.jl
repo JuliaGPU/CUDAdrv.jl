@@ -3,21 +3,24 @@ __precompile__()
 module CUDAdrv
 
 using Compat
-import Compat.String
+using Compat.String
 
-const ext = joinpath(@__DIR__, "..", "deps", "ext.jl")
-isfile(ext) || error("Unable to load $ext\n\nPlease run Pkg.build(\"CUDAdrv\") and restart Julia.")
-include(ext)
+const ext = joinpath(dirname(@__DIR__), "deps", "ext.jl")
+if !isfile(ext)
+    error("Unable to load $ext\n\nPlease run Pkg.build(\"CUDAdrv\") and restart Julia.")
+else
+    include(ext)
+end
 const libcuda = libcuda_path
 
-include("util/logging.jl")
+include(joinpath("util", "logging.jl"))
 
 # CUDA API wrappers
 include("errors.jl")
 include("base.jl")
 include("devices.jl")
 include("context.jl")
-include("context/primary.jl")
+include(joinpath("context", "primary.jl"))
 include("pointer.jl")
 include("module.jl")
 include("memory.jl")
