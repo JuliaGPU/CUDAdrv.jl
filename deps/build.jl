@@ -25,7 +25,7 @@ try
     #       but the user might have run this script with eg. LD_LIBRARY_PATH set
     #       so we save the full path in order to always be able to load the correct library
     libcuda_path = Libdl.dlpath(libcuda)
-    info("Found $libcuda at $libcuda_path")
+    debug("Found $libcuda at $libcuda_path")
 
     # find the library vendor
     libcuda_vendor = "NVIDIA"
