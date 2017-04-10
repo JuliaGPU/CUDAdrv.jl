@@ -12,7 +12,7 @@ const CuDevice_t = Cint
 function devcount()
     count_ref = Ref{Cint}()
     @apicall(:cuDeviceGetCount, (Ptr{Cint},), count_ref)
-    return count_ref[]
+    return convert(Int, count_ref[])
 end
 
 immutable CuDevice
@@ -27,7 +27,14 @@ immutable CuDevice
     end
 end
 
-Base.convert(::Type{CuDevice_t}, dev::CuDevice) = dev.handle
+function Base.show(io::IO, dev::CuDevice)
+    nam = name(dev)
+    tmem = round(totalmem(dev)/(1024^2))
+    cap = capability(dev)
+    print(io, "device[$(Int(dev.ordinal))]: $(nam), capability $(cap.major).$(cap.minor), total memory= $tmem MB")
+end
+
+Base.convert{T<:Integer}(::Type{T}, dev::CuDevice) = convert(T, dev.handle)
 
 Base.:(==)(a::CuDevice, b::CuDevice) = a.handle == b.handle
 Base.hash(dev::CuDevice, h::UInt) = hash(dev.handle, h)
@@ -46,7 +53,7 @@ end
 function totalmem(dev::CuDevice)
     mem_ref = Ref{Csize_t}()
     @apicall(:cuDeviceTotalMem, (Ptr{Csize_t}, CuDevice_t), mem_ref, dev)
-    return mem_ref[]
+    return convert(Int, mem_ref[])
 end
 
 @enum(CUdevice_attribute, MAX_THREADS_PER_BLOCK = Cint(1),
@@ -171,10 +178,10 @@ function list_devices()
     for i = 0:cnt-1
         dev = CuDevice(i)
         nam = name(dev)
-        tmem = round(Integer, totalmem(dev) / (1024^2))
+        tmem = round(totalmem(dev)/(1024^2))
         cap = capability(dev)
 
-        println("device[$i]: $(nam), capability $(cap.major).$(cap.minor), total mem = $tmem MB")
+        println("device[$i]: $(nam), capability $(cap.major).$(cap.minor), total memory = $tmem MB")
     end
 end
 
