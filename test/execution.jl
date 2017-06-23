@@ -87,12 +87,7 @@ let
     end
 
     # test launching kernels with launch() directly
-
-    a = rand(Float32, 10)
-    b = rand(Float32, 10)
-    ad = CuArray(a)
-    bd = CuArray(b)
-
+#=
     # Addition
     let
         c = zeros(Float32, 10)
@@ -128,6 +123,7 @@ let
         c = Array(cd)
         @test c ≈ a./b
     end
+=#
 end
 
 end
