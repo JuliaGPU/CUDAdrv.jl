@@ -56,6 +56,14 @@ This is a low-level call, prefer to use [`cudacall`](@ref) instead.
     _launch(f, griddim, blockdim, shmem, stream, args)
 end
 
+@inline function launch{N}(f::CuFunction, griddim::CuDim3, blockdim::CuDim3,
+                           args::NTuple{N,Any})
+    (griddim.x>0 && griddim.y>0 && griddim.z>0)    || throw(ArgumentError("Grid dimensions should be non-null"))
+    (blockdim.x>0 && blockdim.y>0 && blockdim.z>0) || throw(ArgumentError("Block dimensions should be non-null"))
+
+    _launch(f, griddim, blockdim, Cint(0), CuDefaultStream(), args)
+end
+
 # we need a generated function to get an args array (DevicePtr->Ptr && pointer_from_objref),
 # without having to inspect the types at runtime
 @generated function _launch{N}(f::CuFunction, griddim::CuDim3, blockdim::CuDim3,
