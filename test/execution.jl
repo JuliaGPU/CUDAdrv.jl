@@ -92,7 +92,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        CUDAdrv.launch(vadd, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vadd, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
         c = Array(cd)
         @test c ≈ a+b
     end
@@ -101,7 +101,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        CUDAdrv.launch(vsub, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vsub, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
         c = Array(cd)
         @test c ≈ a-b
     end
@@ -110,7 +110,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        CUDAdrv.launch(vmul, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vmul, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
         c = Array(cd)
         @test c ≈ a.*b
     end
@@ -119,7 +119,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        CUDAdrv.launch(vdiv, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vdiv, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
         c = Array(cd)
         @test c ≈ a./b
     end
