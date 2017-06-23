@@ -59,7 +59,7 @@ This is a low-level call, prefer to use [`cudacall`](@ref) instead.
     _launch(f, griddim, blockdim, shmem, stream, args)
 end
 
-@inline launch{N}(f::CuFunction, griddim::CuDim, blockdim::CuDim, args::NTuple{N,Any}) = launch(f, CuDim3(griddim), CuDim3(blockdim), Cint(0), CuDefaultStream(), args)
+@inline launch{N}(f::CuFunction, griddim::CuDim, blockdim::CuDim, args::NTuple{N,Any}) = launch(f, CuDim3(griddim), CuDim3(blockdim), Int(0), CuDefaultStream(), args)
 
 # we need a generated function to get an args array (DevicePtr->Ptr && pointer_from_objref),
 # without having to inspect the types at runtime
