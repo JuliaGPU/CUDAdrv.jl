@@ -31,7 +31,7 @@ let
     cudacall(dummy, 1, 1, 0, CuDefaultStream(), Tuple{})
     cudacall(dummy, 1, 1, Tuple{}; shmem=0, stream=CuDefaultStream())
     # test launch() default 'shmem' and 'stream' values
-    launch(dummy, 1, 1, ())
+    CUDAdrv.launch(dummy, 1, 1, ())
     ## this one is wrong, but used to trigger an overflow
     @test_throws MethodError cudacall(dummy, 1, 1, CuDefaultStream(), 0, Tuple{})
     ## bug in NTuple usage
@@ -92,7 +92,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        launch(vadd, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vadd, 10, 1, (ad, bd, cd))
         c = Array(cd)
         @test c ≈ a+b
     end
@@ -101,7 +101,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        launch(vsub, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vsub, 10, 1, (ad, bd, cd))
         c = Array(cd)
         @test c ≈ a-b
     end
@@ -110,7 +110,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        launch(vmul, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vmul, 10, 1, (ad, bd, cd))
         c = Array(cd)
         @test c ≈ a.*b
     end
@@ -119,7 +119,7 @@ let
     let
         c = zeros(Float32, 10)
         cd = CuArray(c)
-        launch(vdiv, 10, 1, (ad, bd, cd))
+        CUDAdrv.launch(vdiv, 10, 1, (ad, bd, cd))
         c = Array(cd)
         @test c ≈ a./b
     end
