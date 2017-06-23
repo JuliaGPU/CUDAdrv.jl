@@ -87,7 +87,7 @@ let
     end
 
     # test launching kernels with launch() directly
-#=
+
     # Addition
     let
         c = zeros(Float32, 10)
@@ -123,7 +123,6 @@ let
         c = Array(cd)
         @test c ≈ a./b
     end
-=#
 end
 
 end
