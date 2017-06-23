@@ -30,6 +30,8 @@ let
     cudacall(dummy, 1, 1, Tuple{})
     cudacall(dummy, 1, 1, 0, CuDefaultStream(), Tuple{})
     cudacall(dummy, 1, 1, Tuple{}; shmem=0, stream=CuDefaultStream())
+    # test launch() default 'shmem' and 'stream' values
+    launch(dummy, 1, 1, ())
     ## this one is wrong, but used to trigger an overflow
     @test_throws MethodError cudacall(dummy, 1, 1, CuDefaultStream(), 0, Tuple{})
     ## bug in NTuple usage
