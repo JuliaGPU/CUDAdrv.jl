@@ -1,19 +1,19 @@
 
 # CUDArt defines CudaArray
-if (!isdefined(:CudaPtr)) {
+if (!isdefined(:CudaPtr))
     type CudaPtr{T}
         ptr::Ptr{T}
         ctx::CuContext
     end
-}
-if (!isdefined(:CudaArray)) {
+end
+if (!isdefined(:CudaArray))
     @compat abstract type AbstractCudaArray{T,N} end
     type CudaArray{T, N} <: AbstractCudaArray{T, N}
         ptr::CudaPtr{T}
         dims::NTuple{N,Int}
         dev::Int
     end
-}
+end
 
 # Execution control
 
