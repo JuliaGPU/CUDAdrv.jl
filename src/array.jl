@@ -45,13 +45,6 @@ CuArray
         # semi-hidden constructor, only called by unsafe_convert
         new{T,N}(devptr, shape)
     end
-    # Specifically convert existing CUDArt CudaArray to CuArray
-    function (::Type{CuArray{T,N}}){T,N}(rt_array::CudaArray{T, N})
-        local devptr = DevicePtr{T}(rt_array.ptr.ptr, rt_array.ptr.ctx)
-
-        # This should be carefully freed (both CudaArray and CuArray will share the same memory address!)
-        return new{T,N}(devptr, rt_array.dims)
-    end
 end
 
 @compat const CuVector{T} = CuArray{T,1}
