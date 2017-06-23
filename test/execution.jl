@@ -85,6 +85,44 @@ let
         c = Array(cd)
         @test c ≈ a./b
     end
+
+    # test launching kernels with launch() directly
+
+    # Addition
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        launch(vadd, 10, 1, (ad, bd, cd))
+        c = Array(cd)
+        @test c ≈ a+b
+    end
+
+    # Subtraction
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        launch(vsub, 10, 1, (ad, bd, cd))
+        c = Array(cd)
+        @test c ≈ a-b
+    end
+
+    # Multiplication
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        launch(vmul, 10, 1, (ad, bd, cd))
+        c = Array(cd)
+        @test c ≈ a.*b
+    end
+
+    # Division
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        launch(vdiv, 10, 1, (ad, bd, cd))
+        c = Array(cd)
+        @test c ≈ a./b
+    end
 end
 
 end
