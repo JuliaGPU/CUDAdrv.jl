@@ -1,3 +1,7 @@
+
+# CUDArt defines CudaArray
+using CUDArt
+
 # Execution control
 
 export
