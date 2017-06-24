@@ -78,6 +78,7 @@ let
     end
 
     obj = complete(link)
+    println(obj.data)
     md = CuModule(obj)
 
     vadd = CuFunction(md, "vadd")
