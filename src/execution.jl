@@ -39,10 +39,13 @@ const CuDim = Union{Integer,
 # TODO: unsafe convert voor arrays van en naar cudart?
 """
     launch(f::CuFunction, griddim::CuDim3, blockdim::CuDim3, shmem::Int, stream::CuStream, (args...))
+    launch{N}(f::CuFunction, griddim::CuDim3, blockdim::CuDim3, (args...))
 
 Low-level call to launch a CUDA function `f` on the GPU, using `griddim` and `blockdim` as
 respectively the grid and block configuration. Dynamic shared memory is allocated according
 to `shmem`, and the kernel is launched on stream `stream`.
+
+By default, [`cudacall`](@ref) sets 'shmem' to 0 and 'stream' to 'CuDefaultStream()'.
 
 Arguments to a kernel should either be bitstype, in which case they will be copied to the
 internal kernel parameter buffer, or a pointer to device memory.
@@ -57,6 +60,8 @@ This is a low-level call, prefer to use [`cudacall`](@ref) instead.
 
     _launch(f, griddim, blockdim, shmem, stream, args)
 end
+
+@inline launch{N}(f::CuFunction, griddim::CuDim, blockdim::CuDim, args::NTuple{N,Any}) = launch(f, CuDim3(griddim), CuDim3(blockdim), Int(0), CuDefaultStream(), args)
 
 # we need a generated function to get an args array (DevicePtr->Ptr && pointer_from_objref),
 # without having to inspect the types at runtime

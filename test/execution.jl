@@ -30,6 +30,8 @@ let
     cudacall(dummy, 1, 1, Tuple{})
     cudacall(dummy, 1, 1, 0, CuDefaultStream(), Tuple{})
     cudacall(dummy, 1, 1, Tuple{}; shmem=0, stream=CuDefaultStream())
+    # test launch() default 'shmem' and 'stream' values
+    CUDAdrv.launch(dummy, 1, 1, ())
     ## this one is wrong, but used to trigger an overflow
     @test_throws MethodError cudacall(dummy, 1, 1, CuDefaultStream(), 0, Tuple{})
     ## bug in NTuple usage
@@ -80,6 +82,44 @@ let
         c = zeros(Float32, 10)
         cd = CuArray(c)
         cudacall(vdiv, 10, 1, (DevicePtr{Cfloat},DevicePtr{Cfloat},DevicePtr{Cfloat}), ad, bd, cd)
+        c = Array(cd)
+        @test c ≈ a./b
+    end
+
+    # test launching kernels with launch() directly
+
+    # Addition
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        CUDAdrv.launch(vadd, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
+        c = Array(cd)
+        @test c ≈ a+b
+    end
+
+    # Subtraction
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        CUDAdrv.launch(vsub, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
+        c = Array(cd)
+        @test c ≈ a-b
+    end
+
+    # Multiplication
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        CUDAdrv.launch(vmul, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
+        c = Array(cd)
+        @test c ≈ a.*b
+    end
+
+    # Division
+    let
+        c = zeros(Float32, 10)
+        cd = CuArray(c)
+        CUDAdrv.launch(vdiv, 10, 1, (ad.devptr, bd.devptr, cd.devptr))
         c = Array(cd)
         @test c ≈ a./b
     end
