@@ -1,7 +1,7 @@
-haskey(ENV, "CUDADRV_ONLY_LOAD") && exit()
-
 using CUDAdrv
 using Base.Test
+
+CUDAdrv.ONLY_LOAD && exit()
 
 using Compat
 
