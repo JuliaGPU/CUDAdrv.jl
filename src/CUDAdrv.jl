@@ -12,7 +12,6 @@ const ONLY_LOAD = haskey(ENV, "ONLY_LOAD")
 if ONLY_LOAD
     # special mode where the package is loaded without requiring a successful build.
     # this is useful for loading in unsupported environments, eg. Travis + Documenter.jl
-    warn("Only loading the package, without activating any functionality.")
     const libcuda_path = ""
     const libcuda_version = v"999"  # make sure all functions are available
 end
