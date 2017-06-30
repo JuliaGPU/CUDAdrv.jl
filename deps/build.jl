@@ -47,7 +47,15 @@ function find_libcuda()
             end
         end
     libcuda = Libdl.find_library(libcuda_name, libcuda_locations)
-    isempty(libcuda) && error("CUDA driver library cannot be found (specify the path to $(libcuda_name) using the CUDA_DRIVER environment variable).")
+    if isempty(libcuda)
+      warn("CUDA driver library cannot be found (specify the path to $(libcuda_name) using the CUDA_DRIVER environment variable).")
+      open(ext, "w") do fh
+          write(fh, """
+              ENV["CUDADRV_ONLY_LOAD"] = "true"
+              """)
+      end
+      exit()
+    end
 
     # find the full path of the library
     # NOTE: we could just as well use the result of `find_library,
@@ -99,10 +107,4 @@ function main()
     nothing
 end
 
-try
-    main()
-catch ex
-    # if anything goes wrong, wipe the existing ext.jl to prevent the package from loading
-    rm(ext; force=true)
-    rethrow(ex)
-end
+main()

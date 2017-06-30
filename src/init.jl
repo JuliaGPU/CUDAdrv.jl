@@ -11,7 +11,7 @@ function init(flags::Int=0)
 end
 
 function __init__()
-    haskey(ENV, "ONLY_LOAD") && return
+    ONLY_LOAD && return
 
     # check validity of CUDA library
     @debug("Checking validity of $(libcuda_path)")
