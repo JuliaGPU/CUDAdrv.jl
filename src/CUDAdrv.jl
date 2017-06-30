@@ -7,7 +7,7 @@ using Compat.String
 
 include("../deps/ext.jl")
 
-const ONLY_LOAD = haskey(ENV, "ONLY_LOAD")
+const ONLY_LOAD = haskey(ENV, "CUDADRV_ONLY_LOAD")
 
 if ONLY_LOAD
     # special mode where the package is loaded without requiring a successful build.

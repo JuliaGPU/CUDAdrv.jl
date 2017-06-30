@@ -51,7 +51,7 @@ function find_libcuda()
       warn("CUDA driver library cannot be found (specify the path to $(libcuda_name) using the CUDA_DRIVER environment variable).")
       open(ext, "w") do fh
           write(fh, """
-              ENV["ONLY_LOAD"] = "true"
+              ENV["CUDADRV_ONLY_LOAD"] = "true"
               """)
       end
       exit()

@@ -1,4 +1,4 @@
-haskey(ENV, "ONLY_LOAD") && exit()
+haskey(ENV, "CUDADRV_ONLY_LOAD") && exit()
 
 using CUDAdrv
 using Base.Test
