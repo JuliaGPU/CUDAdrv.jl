@@ -16,7 +16,7 @@ type CuEvent
 
     function CuEvent()
         handle_ref = Ref{CuEvent_t}()
-        @apicall(:cuEventCreate, (Ptr{CuEvent_t}, Cuint), handle_ref, 0)
+        @apicall(:cuEventCreate, (Ref{CuEvent_t}, Cuint), handle_ref, 0)
 
         ctx = CuCurrentContext()
         obj = new(handle_ref[], ctx)
@@ -61,7 +61,7 @@ Computes the elapsed time between two events (in seconds).
 """
 function elapsed(start::CuEvent, stop::CuEvent)
     time_ref = Ref{Cfloat}()
-    @apicall(:cuEventElapsedTime, (Ptr{Cfloat}, CuEvent_t, CuEvent_t),
+    @apicall(:cuEventElapsedTime, (Ref{Cfloat}, CuEvent_t, CuEvent_t),
                                   time_ref, start, stop)
     return time_ref[]/1000
 end

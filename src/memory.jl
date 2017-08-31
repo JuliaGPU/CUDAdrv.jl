@@ -60,7 +60,7 @@ function alloc(bytesize::Integer)
     bytesize == 0 && throw(ArgumentError("invalid amount of memory requested"))
 
     ptr_ref = Ref{Ptr{Void}}()
-    @apicall(:cuMemAlloc, (Ptr{Ptr{Void}}, Csize_t), ptr_ref, bytesize)
+    @apicall(:cuMemAlloc, (Ref{Ptr{Void}}, Csize_t), ptr_ref, bytesize)
     return OwnedPtr{Void}(ptr_ref[], CuCurrentContext())
 end
 
@@ -84,7 +84,7 @@ Returns a tuple of two integers, indicating respectively the free and total amou
 function info()
     free_ref = Ref{Csize_t}()
     total_ref = Ref{Csize_t}()
-    @apicall(:cuMemGetInfo, (Ptr{Csize_t},Ptr{Csize_t}), free_ref, total_ref)
+    @apicall(:cuMemGetInfo, (Ref{Csize_t}, Ref{Csize_t}), free_ref, total_ref)
     return convert(Int, free_ref[]), convert(Int, total_ref[])
 end
 

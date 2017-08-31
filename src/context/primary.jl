@@ -38,7 +38,7 @@ reason, it is advised to use this function with `do` block syntax.
 """
 function CuContext(pctx::CuPrimaryContext)
     handle = Ref{CuContext_t}()
-    @apicall(:cuDevicePrimaryCtxRetain, (Ptr{CuContext_t}, CuDevice_t,), handle, pctx.dev)
+    @apicall(:cuDevicePrimaryCtxRetain, (Ref{CuContext_t}, CuDevice_t,), handle, pctx.dev)
     ctx = CuContext(handle[], false)    # CuContext shouldn't manage this ctx
     finalizer(ctx, (ctx)->begin
         @trace("Finalizing derived CuContext object at $(Base.pointer_from_objref(ctx)))")
@@ -54,7 +54,7 @@ end
 function state(pctx::CuPrimaryContext)
     flags = Ref{Cuint}()
     active = Ref{Cint}()
-    @apicall(:cuDevicePrimaryCtxGetState, (CuDevice_t, Ptr{Cuint}, Ptr{Cint}),
+    @apicall(:cuDevicePrimaryCtxGetState, (CuDevice_t, Ref{Cuint}, Ref{Cint}),
              pctx.dev, flags, active)
     return (flags[], active[] == one(Cint))
 end

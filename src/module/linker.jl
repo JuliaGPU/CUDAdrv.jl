@@ -33,7 +33,7 @@ type CuLink
         end
         optionKeys, optionVals = encode(options)
 
-        @apicall(:cuLinkCreate, (Cuint, Ptr{CUjit_option}, Ptr{Ptr{Void}}, Ptr{CuLinkState_t}),
+        @apicall(:cuLinkCreate, (Cuint, Ref{CUjit_option}, Ref{Ptr{Void}}, Ref{CuLinkState_t}),
                                 length(optionKeys), optionKeys, optionVals, handle_ref)
 
         ctx = CuCurrentContext()
@@ -116,7 +116,7 @@ function complete(link::CuLink)
     size_ref = Ref{Csize_t}()
 
     try
-        @apicall(:cuLinkComplete, (CuLinkState_t, Ptr{Ptr{Void}}, Ptr{Csize_t}),
+        @apicall(:cuLinkComplete, (CuLinkState_t, Ref{Ptr{Void}}, Ref{Csize_t}),
                                   link, cubin_ref, size_ref)
     catch err
         (err == ERROR_NO_BINARY_FOR_GPU || err == ERROR_INVALID_IMAGE) || rethrow(err)
