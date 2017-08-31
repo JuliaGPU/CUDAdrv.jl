@@ -115,7 +115,7 @@ Base.deepcopy_internal(::CuContext, ::ObjectIdDict) =
 
 function CuContext(dev::CuDevice, flags::CUctx_flags=SCHED_AUTO)
     handle_ref = Ref{CuContext_t}()
-    @apicall(:cuCtxCreate, (Ptr{CuContext_t}, Cuint, Cint),
+    @apicall(:cuCtxCreate, (Ref{CuContext_t}, Cuint, Cint),
                            handle_ref, flags, dev)
     CuContext(handle_ref[])
 end
@@ -128,7 +128,7 @@ Return the current context, or a NULL context if there is no active context (see
 """
 function CuCurrentContext()
     handle_ref = Ref{CuContext_t}()
-    @apicall(:cuCtxGetCurrent, (Ptr{CuContext_t},), handle_ref)
+    @apicall(:cuCtxGetCurrent, (Ref{CuContext_t},), handle_ref)
     CuContext(handle_ref[], false)
 end
 
@@ -177,7 +177,7 @@ function device(ctx::CuContext)
     # TODO: cuCtxGetDevice returns the device ordinal, but as a CUDevice*?
     #       This can't be right...
     device_ref = Ref{Cint}()
-    @apicall(:cuCtxGetDevice, (Ptr{Cint},), device_ref)
+    @apicall(:cuCtxGetDevice, (Ref{Cint},), device_ref)
     return CuDevice(device_ref[])
 end
 

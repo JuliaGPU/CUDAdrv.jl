@@ -23,7 +23,7 @@ Create a CUDA stream.
 """
 function CuStream(flags::Integer=0)
     handle_ref = Ref{CuStream_t}()
-    @apicall(:cuStreamCreate, (Ptr{CuStream_t}, Cuint),
+    @apicall(:cuStreamCreate, (Ref{CuStream_t}, Cuint),
                               handle_ref, flags)
 
     ctx = CuCurrentContext()

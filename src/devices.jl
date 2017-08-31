@@ -18,7 +18,7 @@ immutable CuDevice
     function CuDevice(i::Integer)
         ordinal = convert(Cint, i)
         handle_ref = Ref{CuDevice_t}()
-        @apicall(:cuDeviceGet, (Ptr{CuDevice_t}, Cint), handle_ref, ordinal)
+        @apicall(:cuDeviceGet, (Ref{CuDevice_t}, Cint), handle_ref, ordinal)
         new(ordinal, handle_ref[])
     end
 end
@@ -40,7 +40,7 @@ Returns an identifier string for the device.
 function name(dev::CuDevice)
     const buflen = 256
     buf = Array{Cchar}(buflen)
-    @apicall(:cuDeviceGetName, (Ptr{Cchar}, Cint, CuDevice_t),
+    @apicall(:cuDeviceGetName, (Ref{Cchar}, Cint, CuDevice_t),
                                buf, buflen, dev)
     buf[end] = 0
     return unsafe_string(pointer(buf))
@@ -53,7 +53,7 @@ Returns the total amount of memory (in bytes) on the device.
 """
 function totalmem(dev::CuDevice)
     mem_ref = Ref{Csize_t}()
-    @apicall(:cuDeviceTotalMem, (Ptr{Csize_t}, CuDevice_t), mem_ref, dev)
+    @apicall(:cuDeviceTotalMem, (Ref{Csize_t}, CuDevice_t), mem_ref, dev)
     return mem_ref[]
 end
 
@@ -151,7 +151,7 @@ Returns information about the device.
 """
 function attribute(dev::CuDevice, code::CUdevice_attribute)
     value_ref = Ref{Cint}()
-    @apicall(:cuDeviceGetAttribute, (Ptr{Cint}, Cint, CuDevice_t),
+    @apicall(:cuDeviceGetAttribute, (Ref{Cint}, Cint, CuDevice_t),
                                     value_ref, code, dev)
     return value_ref[]
 end
@@ -181,7 +181,7 @@ Base.done(iter::DeviceSet, state) = state == Base.length(iter)
 
 function Base.length(::DeviceSet)
     count_ref = Ref{Cint}()
-    @apicall(:cuDeviceGetCount, (Ptr{Cint},), count_ref)
+    @apicall(:cuDeviceGetCount, (Ref{Cint},), count_ref)
     return count_ref[]
 end
 

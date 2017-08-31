@@ -52,7 +52,7 @@ CuError(1, ERROR_INVALID_VALUE)
 """
 function name(err::CuError)
     str_ref = Ref{Cstring}()
-    @apicall(:cuGetErrorName, (CuError_t, Ptr{Cstring}), err.code, str_ref)
+    @apicall(:cuGetErrorName, (CuError_t, Ref{Cstring}), err.code, str_ref)
     unsafe_string(str_ref[])[6:end]
 end
 
@@ -63,7 +63,7 @@ Gets the string description of an error code.
 """
 function description(err::CuError)
     str_ref = Ref{Cstring}()
-    @apicall(:cuGetErrorString, (CuError_t, Ptr{Cstring}), err.code, str_ref)
+    @apicall(:cuGetErrorString, (CuError_t, Ref{Cstring}), err.code, str_ref)
     unsafe_string(str_ref[])
 end
 

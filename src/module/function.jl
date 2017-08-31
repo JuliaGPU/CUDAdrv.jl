@@ -18,7 +18,7 @@ immutable CuFunction
     "Get a handle to a kernel function in a CUDA module."
     function CuFunction(mod::CuModule, name::String)
         handle_ref = Ref{CuFunction_t}()
-        @apicall(:cuModuleGetFunction, (Ptr{CuFunction_t}, CuModule_t, Ptr{Cchar}),
+        @apicall(:cuModuleGetFunction, (Ref{CuFunction_t}, CuModule_t, Cstring),
                                        handle_ref, mod, name)
         new(handle_ref[], mod)
     end

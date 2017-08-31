@@ -92,8 +92,8 @@ end
             Cuint, Cuint, Cuint,    # block dimensions (x, y, z)
             Cuint,                  # shared memory bytes,
             CuStream_t,             # stream
-            Ptr{Ptr{Void}},         # kernel parameters
-            Ptr{Ptr{Void}}),        # extra parameters
+            Ref{Ptr{Void}},         # kernel parameters
+            Ref{Ptr{Void}}),        # extra parameters
             f,
             griddim.x, griddim.y, griddim.z,
             blockdim.x, blockdim.y, blockdim.z,

@@ -17,7 +17,7 @@ immutable CuGlobal{T}
     function (::Type{CuGlobal{T}}){T}(mod::CuModule, name::String)
         ptr_ref = Ref{Ptr{Void}}()
         nbytes_ref = Ref{Cssize_t}()
-        @apicall(:cuModuleGetGlobal, (Ptr{Ptr{Void}}, Ptr{Cssize_t}, CuModule_t, Ptr{Cchar}), 
+        @apicall(:cuModuleGetGlobal, (Ref{Ptr{Void}}, Ref{Cssize_t}, CuModule_t, Cstring),
                                      ptr_ref, nbytes_ref, mod, name)
         if nbytes_ref[] != sizeof(T)
             throw(ArgumentError("size of global '$name' does not match type parameter type $T"))
@@ -47,6 +47,7 @@ Return the current value of a global variable.
 """
 function Base.get{T}(var::CuGlobal{T})
     val_ref = Ref{T}()
+    # FIXME: `val_ref` is GC memory, pass as Ref
     @apicall(:cuMemcpyDtoH, (Ptr{Void}, Ptr{Void}, Csize_t),
                             val_ref, var.ptr, var.nbytes)
     return val_ref[]
@@ -59,6 +60,7 @@ Set the value of a global variable to `val`
 """
 function set{T}(var::CuGlobal{T}, val::T)
     val_ref = Ref{T}(val)
+    # FIXME: `val_ref` is GC memory, pass as Ref
     @apicall(:cuMemcpyHtoD, (Ptr{Void}, Ptr{Void}, Csize_t),
                             var.ptr, val_ref, var.nbytes)
 end
