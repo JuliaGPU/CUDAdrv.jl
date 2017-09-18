@@ -144,8 +144,8 @@ macro apicall(funspec, argtypes, args...)
     configured || return :(error("CUDAdrv.jl has not been configured."))
 
     return quote
-        status = @logging_ccall($(QuoteNode(api_fun)), ($(QuoteNode(api_fun)), libcuda),
-                                Cint, $(esc(argtypes)), $(map(esc, args)...))
+        status = ccall(($(QuoteNode(api_fun)), libcuda), Cint,
+                       $(esc(argtypes)), $(map(esc, args)...))
 
         if status != SUCCESS.code
             err = CuError(status)
