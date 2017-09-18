@@ -90,20 +90,11 @@ minreq[:cuLinkAddData]      = v"5.5"
 minreq[:cuDummyAvailable]   = v"0"      # non-existing functions
 minreq[:cuDummyUnavailable] = v"999"    # for testing purposes
 
-# explicitly mark unavailable symbols, signaling `resolve` to error out
+# explicitly mark unavailable symbols, signaling `@apicall` to error out
 for (api_function, minimum_version) in minreq
     if libcuda_version < minimum_version
         mapping[api_function] = :unavailable
     end
-end
-
-function resolve(f::Symbol)
-    global mapping, version_requirements
-    versioned_f = get(mapping, f, f)
-    if versioned_f == :unavailable
-        throw(CuVersionError(f, minreq[f]))
-    end
-    return versioned_f
 end
 
 
@@ -139,7 +130,12 @@ macro apicall(funspec, argtypes, args...)
         funspec.args[1]
     end
 
-    api_fun = resolve(fun)  # TODO: make this error at runtime?
+    # resolve the function
+    global mapping, version_requirements
+    api_fun = get(mapping, fun, fun)
+    if api_fun == :unavailable
+        return :(throw(CuVersionError($(QuoteNode(fun)), $(minreq[fun]))))
+    end
 
     configured || return :(error("CUDAdrv.jl has not been configured."))
 
