@@ -128,12 +128,18 @@ immutable CuError <: Exception
 end
 
 # ccall wrapper for calling functions in NVIDIA libraries
-macro apicall(fun, argtypes, args...)
-    if !isa(fun, Expr) || fun.head != :quote
-        error("first argument to @apicall should be a symbol")
+macro apicall(funspec, argtypes, args...)
+    fun = if VERSION >= v"0.7.0-DEV.1729"
+        isa(funspec, QuoteNode) || error("first argument to @apicall should be a symbol")
+        funspec.value
+    else
+        if !isa(funspec, Expr) || funspec.head != :quote
+            error("first argument to @apicall should be a symbol")
+        end
+        funspec.args[1]
     end
 
-    api_fun = resolve(fun.args[1])  # TODO: make this error at runtime?
+    api_fun = resolve(fun)  # TODO: make this error at runtime?
 
     configured || return :(error("CUDAdrv.jl has not been configured."))
 
