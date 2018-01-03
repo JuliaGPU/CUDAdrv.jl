@@ -51,9 +51,13 @@ CuError(1, ERROR_INVALID_VALUE)
 ```
 """
 function name(err::CuError)
-    str_ref = Ref{Cstring}()
-    @apicall(:cuGetErrorName, (CuError_t, Ptr{Cstring}), err.code, str_ref)
-    unsafe_string(str_ref[])[6:end]
+    if vendor() == :rCUDA
+        return string(get(return_codes, err.code, :ERROR_UNKNOWN))
+    else
+        str_ref = Ref{Cstring}()
+        @apicall(:cuGetErrorName, (CuError_t, Ptr{Cstring}), err.code, str_ref)
+        unsafe_string(str_ref[])[6:end]
+    end
 end
 
 """

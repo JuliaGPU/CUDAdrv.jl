@@ -53,7 +53,12 @@ function main()
 
     driver_path = find_driver()
     config[:libcuda_path] = find_cuda_library("cuda", driver_path)
-    config[:libcuda_vendor] = "NVIDIA"
+
+    config[:libcuda_vendor] = if haskey(ENV, "RCUDA_DEVICE_COUNT")
+        :rCUDA
+    else
+        :NVIDIA
+    end
 
     # initializing the library isn't necessary, but flushes out errors that otherwise would
     # happen during `version` or, worse, at package load time.
