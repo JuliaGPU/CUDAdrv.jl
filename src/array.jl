@@ -10,7 +10,7 @@ export
     CuArray{T}(dims)
     CuArray{T,N}(dims)
 
-Construct an undef `N`-dimensional dense CUDA array with element type `T`, where `N`
+Construct an uninitialized `N`-dimensional dense CUDA array with element type `T`, where `N`
 is determined from the length or number of `dims`. `dims` may be a tuple or a series of
 integer arguments corresponding to the lengths in each dimension. If the rank `N` is
 supplied explicitly as in `Array{T,N}(dims)`, then it must match the length or number of
