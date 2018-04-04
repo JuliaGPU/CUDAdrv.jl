@@ -2,6 +2,7 @@ using CUDAapi
 
 using Compat
 VERSION >= v"0.7.0-DEV.3382" && using Libdl
+VERSION < v"0.7-" && using MicroLogging
 
 
 ## API routines
@@ -52,7 +53,10 @@ function main()
 
     ## discover stuff
 
-    config[:libcuda_path] = find_cuda_library("cuda")
+    # NOTE: on macOS, the driver is part of the toolkit
+    toolkit_dirs = find_toolkit()
+
+    config[:libcuda_path] = find_cuda_library("cuda", toolkit_dirs)
     config[:libcuda_vendor] = "NVIDIA"
 
     # initializing the library isn't necessary, but flushes out errors that otherwise would
