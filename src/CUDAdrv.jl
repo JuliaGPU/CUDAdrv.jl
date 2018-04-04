@@ -6,6 +6,7 @@ using CUDAapi
 
 using Compat
 VERSION >= v"0.7.0-DEV.3052" && using Printf
+VERSION < v"0.7-" && using MicroLogging
 
 const ext = joinpath(dirname(@__DIR__), "deps", "ext.jl")
 isfile(ext) || error("CUDAdrv.jl has not been built, please run Pkg.build(\"CUDAdrv\").")
