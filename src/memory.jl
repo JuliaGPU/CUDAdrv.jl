@@ -161,7 +161,6 @@ function freehost(buf::Buffer)
     end
     return
 end
-
 """
     alloc(bytes::Integer)
 
@@ -255,12 +254,41 @@ function upload!(dst::Buffer, src::Ref, nbytes::Integer,
     end
 end
 
+#When using pinned host memory, src can be a buffer
+function upload!(dst::Buffer, src::Buffer, nbytes::Integer,
+                 stream::CuStream=CuDefaultStream(); async::Bool=false)
+    if async
+        @apicall(:cuMemcpyHtoDAsync,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t, CuStream_t),
+                 dst, src, nbytes, stream)
+    else
+        @assert stream==CuDefaultStream()
+        @apicall(:cuMemcpyHtoD,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
+                 dst, src, nbytes)
+    end
+end
+
 """
     download!(dst::Ref, src::Buffer, nbytes::Integer, [stream=CuDefaultStream()]; async=false)
 
 Download `nbytes` memory from `src` on the device to `src` on the host.
 """
 function download!(dst::Ref, src::Buffer, nbytes::Integer,
+                   stream::CuStream=CuDefaultStream(); async::Bool=false)
+    if async
+        @apicall(:cuMemcpyDtoHAsync,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t, CuStream_t),
+                 dst, src, nbytes, stream)
+    else
+        @assert stream==CuDefaultStream()
+        @apicall(:cuMemcpyDtoH,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
+                 dst, src, nbytes)
+    end
+end
+# When using host pinned memory, destination can be a buffer
+function download!(dst::Buffer, src::Buffer, nbytes::Integer,
                    stream::CuStream=CuDefaultStream(); async::Bool=false)
     if async
         @apicall(:cuMemcpyDtoHAsync,
@@ -340,7 +368,21 @@ function download!(dst::AbstractArray, src::Buffer,
     return
 end
 
+function loadPinned(dst::Buffer, src::AbstractArray)
+    if (sizeof(src) > dst.bytesize) || (sizeof(src) < dst.bytesize)
+        throw(ArgumentError("size of destination does not match size of source (bytes)"))
+    end
+    srcptr = Ref(src, 1)
+    ccall((:memcpy, "libc.so.6"),Ptr{Cvoid},(Ptr{Cvoid},Ptr{Cvoid}, Csize_t), dst.ptr, srcptr, dst.bytesize)
+    end
 
+function unloadPinned(dst::AbstractArray, src::Buffer)
+    if (sizeof(dst) > src.bytesize) || (sizeof(dst) < src.bytesize)
+        throw(ArgumentError("size of destination does not match size of source (bytes)"))
+    end
+    dstptr = Ref(dst,1)
+    ccall((:memcpy, "libc.so.6"),Ptr{Cvoid},(Ptr{Cvoid},Ptr{Cvoid}, Csize_t), dstptr, src.ptr, src.bytesize)
+end
 ## type based
 
 function check_type(::Type{Buffer}, T)
