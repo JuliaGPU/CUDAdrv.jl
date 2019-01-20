@@ -144,6 +144,23 @@ function transfer end
 @enum(CUmem_attach, ATTACH_GLOBAL = 0x01,
                     ATTACH_HOST   = 0x02)
                     #ATTACH_SINGLE = 0x04) # Defined but not valid
+@enum(CUmem_hostalloc, default       = 0x00,
+                       mapped        = 0x02,
+                       portable      = 0x01,
+                       writecombined = 0x04)
+
+function hostalloc(bytesize::Integer, flags::CUmem_hostalloc=default)
+    ptr_ref = Ref{Ptr{Cvoid}}()
+    @apicall(:cuMemAllocHost, (Ptr{Ptr{Cvoid}}, Csize_t, Cuint), ptr_ref, bytesize, flags)
+    return Buffer(ptr_ref[], bytesize, CuCurrentContext())
+end
+
+function freehost(buf::Buffer)
+    if buf.ptr != C_NULL
+    @apicall(:cuMemFreeHost, (Ptr{Cvoid},), buf.ptr)
+    end
+    return
+end
 
 """
     alloc(bytes::Integer)
