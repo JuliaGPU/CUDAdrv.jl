@@ -141,6 +141,7 @@ function transfer end
 @enum(CUmem_attach, ATTACH_GLOBAL = 0x01,
                     ATTACH_HOST   = 0x02)
                     #ATTACH_SINGLE = 0x04) # Defined but not valid
+
 @enum(CUmem_hostalloc, default       = 0x00,
                        mapped        = 0x02,
                        portable      = 0x01,
