@@ -3,7 +3,7 @@
 # This is meant for interoperability with the CUDA runtime API
 
 export
-    CuPrimaryContext, unsafe_reset!, isactive, flags, setflags!
+    CuPrimaryContext, unsafe_reset!, isactive, flags, setflags!, resetPrimaryContext!
 
 """
     CuPrimaryContext(dev::CuDevice)
@@ -104,6 +104,15 @@ function unsafe_reset!(pctx::CuPrimaryContext, checked::Bool=true)
     end
 
     return
+end
+
+# Although excluded for reasons above, having the option to reset primary context is
+# useful nonetheless under certain circumstances.
+"""Resets the primary context on the selected device. Useful if GC fails to
+pick-up old handles despite destroying current ctx. WARNING: This can break
+automatic GC handling. Use at your own risk."""
+function resetPrimaryContext!(dev::CuDevice)
+    @apicall(:cuDevicePrimaryCtxReset, (CuDevice_t,), dev )
 end
 
 """
