@@ -51,3 +51,12 @@ Return the default stream.
 Wait until a stream's tasks are completed.
 """
 synchronize(s::CuStream) = @apicall(:cuStreamSynchronize, (CuStream_t,), s)
+
+"""
+    streamWaitEvent(stream::CuStream, event::CuEvent)
+
+Permits holding streams _independently_ for event triggers."""
+function streamWaitEvent(stream::CuStream, event::CuEvent; flags::Int=0)
+    @apicall(:cuStreamWaitEvent, (CuStream_t, CuEvent_t, Cuint), stream.handle,
+                                                            event.handle, flags)
+end
