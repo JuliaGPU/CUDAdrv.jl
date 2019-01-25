@@ -25,8 +25,6 @@ function view(buf::Buffer, bytes::Int)
     return Mem.Buffer(buf.ptr+bytes, buf.bytesize-bytes, buf.ctx)
 end
 
-
-
 ## refcounting
 
 const refcounts = Dict{Buffer, Int}()
@@ -59,7 +57,6 @@ function release(buf::Buffer)
     refcounts[buf] = refcount - 1
     return refcount==1
 end
-
 
 ## memory info
 
@@ -149,18 +146,101 @@ function transfer end
                        portable      = 0x01,
                        writecombined = 0x04)
 
-function hostalloc(bytesize::Integer, flags::CUmem_hostalloc=default)
-    ptr_ref = Ref{Ptr{Cvoid}}()
-    @apicall(:cuMemAllocHost, (Ptr{Ptr{Cvoid}}, Csize_t, Cuint), ptr_ref, bytesize, flags)
-    return Buffer(ptr_ref[], bytesize, CuCurrentContext())
+# Currently the pointer gets wrapped by a CuArray, but at present there's no 
+# implementation of a method for distinguishing regular GPU CuArrays from 
+# CPU-pinned memory CuArrays. 
+""" hotalloc() 
+allocates page-locked/pinned memory registered by the GPU for higher 
+bandwidth transfer and better compatibility with async methods. """
+function hostalloc(src::AbstractArray{T}; flags::CUmem_hostalloc=default) where T
+    dims = size(src)
+    bytesize = sizeof(src)
+    ptr = Ref{Ptr{T}}()
+    @apicall(:cuMemAllocHost, (Ptr{Ptr{T}}, Csize_t, Cuint), ptr, bytesize, flags)
+    #A = AbstractArray{T,N}(undef,dims)
+    A = Base.unsafe_wrap(CuArray, ptr[], dims; own=false)
+    return A
 end
 
-function freehost(buf::Buffer)
-    if buf.ptr != C_NULL
-    @apicall(:cuMemFreeHost, (Ptr{Cvoid},), buf.ptr)
+""" Manually frees page-locked memory allocated by the GPU """
+function hostfree(src::CuArray)
+    srcbuf = CuArrays.buffer(src)
+    if srcbuf.ptr != C_NULL
+    @apicall(:cuMemFreeHost, (Ptr{Cvoid},), srcbuf.ptr)
     end
     return
 end
+
+""" pin()
+copies host data to page-locked/GPU allocated memory in a CuArray"""
+function pin(dst::CuArray, src::AbstractArray)
+    if eltype(src) !== eltype(dst)
+        throw(ArgumentError("type of dst does not match type of src"))
+    end
+    if (sizeof(src) > sizeof(dst)) || (sizeof(src) < sizeof(dst))
+        throw(ArgumentError("size of destination does not match size source (bytes)"))
+    end
+    srcptr = Ref(src,1)
+    dstbuf = CuArrays.buffer(dst)
+    ccall(:memcpy, Nothing, (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t), dstbuf.ptr,
+                                                        srcptr, dstbuf.bytesize)
+end
+
+""" unpin()
+reverse of pin() """
+function unpin(dst::AbstractArray, src::CuArray)
+    if eltype(src) !== eltype(dst)
+        throw(ArgumentError("type of dst does not match type of src"))
+    end
+    if (sizeof(src) > sizeof(dst)) || (sizeof(src) < sizeof(dst))
+        throw(ArgumentError("size of destination does not match size of source (bytes)"))
+    end
+    dstptr = Ref(dst,1)
+    srcbuf = CuArrays.buffer(src)
+    ccall(:memcpy, Nothing, (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t), dstptr,
+                                                    srcbuf.ptr, srcbuf.bytesize)
+end
+
+# Needs a way of differentiating CuArrays on GPU vs pinned mem 
+""" Dispatch for Mem.upload! that can take CuArrays (containing pinned memory)
+as arguments. Potentially simplified by just wrapping Mem.upload! and only performing the
+buffer transform. """
+function upload!(dst::CuArray, src::CuArray,
+                 stream::CuStream=CuDefaultStream(); async::Bool=false)
+    dstbuffer = CuArrays.buffer(dst)
+    srcbuffer = CuArrays.buffer(src)
+    if async
+        @apicall(:cuMemcpyHtoDAsync,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t, CuStream_t),
+                    dstbuffer.ptr, srcbuffer.ptr, srcbuffer.bytesize, stream)
+    else
+        @assert stream==CuDefaultStream()
+        @apicall(:cuMemcpyHtoD,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
+                    dstbuffer.ptr, srcbuffer.ptr, srcbuffer.bytesize)
+    end
+end
+
+# Needs a way of differentiating CuArrays on GPU vs pinned mem 
+""" Dispatch for Mem.download! that can take CuArrays (containing pinned memory) 
+as arguments. Potentially simplified by just wrapping Mem.download! and 
+only performing the buffer transform. """
+function download!(dst::CuArray, src::CuArray,
+                    stream::CuStream=CuDefaultStream(); async::Bool=false)
+    srcbuf = CuArrays.buffer(src)
+    dstbuf = CuArrays.buffer(dst)
+    if async
+        @apicall(:cuMemcpyDtoHAsync,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t, CuStream_t),
+                    dstbuf.ptr, srcbuf.ptr, dstbuf.bytesize, stream)
+    else
+        @assert stream==CuDefaultStream()
+        @apicall(:cuMemcpyDtoH,
+                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
+                    dstbuf.ptr, srcbuf.ptr, dstbuf.bytesize)
+    end
+end
+
 """
     alloc(bytes::Integer)
 
@@ -254,41 +334,12 @@ function upload!(dst::Buffer, src::Ref, nbytes::Integer,
     end
 end
 
-#When using pinned host memory, src can be a buffer
-function upload!(dst::Buffer, src::Buffer, nbytes::Integer,
-                 stream::CuStream=CuDefaultStream(); async::Bool=false)
-    if async
-        @apicall(:cuMemcpyHtoDAsync,
-                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t, CuStream_t),
-                 dst, src, nbytes, stream)
-    else
-        @assert stream==CuDefaultStream()
-        @apicall(:cuMemcpyHtoD,
-                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-                 dst, src, nbytes)
-    end
-end
-
 """
     download!(dst::Ref, src::Buffer, nbytes::Integer, [stream=CuDefaultStream()]; async=false)
 
 Download `nbytes` memory from `src` on the device to `src` on the host.
 """
 function download!(dst::Ref, src::Buffer, nbytes::Integer,
-                   stream::CuStream=CuDefaultStream(); async::Bool=false)
-    if async
-        @apicall(:cuMemcpyDtoHAsync,
-                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t, CuStream_t),
-                 dst, src, nbytes, stream)
-    else
-        @assert stream==CuDefaultStream()
-        @apicall(:cuMemcpyDtoH,
-                 (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-                 dst, src, nbytes)
-    end
-end
-# When using host pinned memory, destination can be a buffer
-function download!(dst::Buffer, src::Buffer, nbytes::Integer,
                    stream::CuStream=CuDefaultStream(); async::Bool=false)
     if async
         @apicall(:cuMemcpyDtoHAsync,
@@ -320,7 +371,6 @@ function transfer!(dst::Buffer, src::Buffer, nbytes::Integer,
                  dst, src, nbytes)
     end
 end
-
 
 ## array based
 
@@ -368,21 +418,6 @@ function download!(dst::AbstractArray, src::Buffer,
     return
 end
 
-function loadPinned(dst::Buffer, src::AbstractArray)
-    if (sizeof(src) > dst.bytesize) || (sizeof(src) < dst.bytesize)
-        throw(ArgumentError("size of destination does not match size of source (bytes)"))
-    end
-    srcptr = Ref(src, 1)
-    ccall((:memcpy, "libc.so.6"),Ptr{Cvoid},(Ptr{Cvoid},Ptr{Cvoid}, Csize_t), dst.ptr, srcptr, dst.bytesize)
-    end
-
-function unloadPinned(dst::AbstractArray, src::Buffer)
-    if (sizeof(dst) > src.bytesize) || (sizeof(dst) < src.bytesize)
-        throw(ArgumentError("size of destination does not match size of source (bytes)"))
-    end
-    dstptr = Ref(dst,1)
-    ccall((:memcpy, "libc.so.6"),Ptr{Cvoid},(Ptr{Cvoid},Ptr{Cvoid}, Csize_t), dstptr, src.ptr, src.bytesize)
-end
 ## type based
 
 function check_type(::Type{Buffer}, T)
