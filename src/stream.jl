@@ -58,3 +58,24 @@ Return the default stream.
 Wait until a stream's tasks are completed.
 """
 synchronize(s::CuStream) = @apicall(:cuStreamSynchronize, (CuStream_t,), s)
+
+"""
+    isready(s::CuStream)
+
+Query the status of a stream. If true this is equivalent to having called `cuStreamSynchronize`.
+"""
+function isready(s::CuStream)
+    # NOTE: this hook is used by CUDAnative.jl to initialize upon the first API call
+    apicall_hook[] !== nothing && apicall_hook[](:cuStreamQuery)
+
+    status = ccall((:cuStreamQuery, libcuda), CuError_t, (CuStream_t,), s)
+
+    if status == SUCCESS.code
+        return true
+    elseif status == ERROR_NOT_READY.code
+        return false
+    else
+        err = CuError(status)
+        throw(err)
+    end
+end
