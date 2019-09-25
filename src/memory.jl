@@ -407,11 +407,12 @@ end
 end
 
 """
-    available_memory()
+    free_memory()
 
-Returns the available_memory amount of memory (in bytes), available for allocation by the CUDA context.
+Returns the free amount of memory (in bytes), available for allocation by the CUDA context.
 """
-available_memory() = Mem.info()[1]
+free_memory() = Mem.info()[1]
+@deprecate available_memory free_memory false
 
 """
     total_memory()

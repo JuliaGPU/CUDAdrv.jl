@@ -3,7 +3,7 @@
 let
     a,b = Mem.info()
     # NOTE: actually testing this is pretty fragile on CI
-    #=@test a == =# CUDAdrv.available_memory()
+    #=@test a == =# CUDAdrv.free_memory()
     #=@test b == =# CUDAdrv.total_memory()
 end
 
