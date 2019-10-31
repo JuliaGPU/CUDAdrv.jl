@@ -4,6 +4,18 @@ using Test
 
 @testset "CUDAdrv" begin
 
+# make sure everything we export actually exists
+for sym in names(CUDAdrv)
+    getfield(CUDAdrv, sym)
+end
+
+# idem for the unexported API
+for x in CUDAdrv.unexported_api
+    @assert Meta.isexpr(x, :(.))
+    mod, name = x.args
+    getfield(mod, name.value)
+end
+
 include("util.jl")
 include("array.jl")
 
