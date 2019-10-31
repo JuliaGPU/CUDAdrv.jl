@@ -1,7 +1,7 @@
 # Device type and auxiliary functions
 
-export
-    CuDevice, name, totalmem, attribute
+export CuDevice, name, totalmem, attribute
+@public DEVICE_CPU, DEVICE_INVALID
 
 
 """

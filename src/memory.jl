@@ -1,11 +1,12 @@
 # Raw memory management
 
 export Mem
+@public available_memory, total_memory
 
 module Mem
 
 using ..CUDAdrv
-using ..CUDAdrv: @enum_without_prefix, CUstream, CUdevice
+using ..CUDAdrv: @public, @enum_without_prefix, CUstream, CUdevice
 
 using Base: @deprecate_binding
 
@@ -13,6 +14,8 @@ using Base: @deprecate_binding
 #
 # untyped buffers
 #
+
+@public Buffer, alloc, free
 
 abstract type Buffer end
 
@@ -33,6 +36,8 @@ Base.unsafe_convert(T::Type{<:Union{Ptr,CuPtr}}, buf::Buffer) = convert(T, buf)
 ## device buffer
 ##
 ## residing on the GPU
+
+@public DeviceBuffer
 
 struct DeviceBuffer <: Buffer
     ptr::CuPtr{Cvoid}
@@ -66,11 +71,6 @@ function alloc(::Type{DeviceBuffer}, bytesize::Integer)
     return DeviceBuffer(reinterpret(CuPtr{Cvoid}, ptr_ref[]), bytesize, CuCurrentContext())
 end
 
-@deprecate_binding HOSTALLOC_DEFAULT 0 false
-const HOSTALLOC_PORTABLE = CUDAdrv.CU_MEMHOSTALLOC_PORTABLE
-const HOSTALLOC_DEVICEMAP = CUDAdrv.CU_MEMHOSTALLOC_DEVICEMAP
-const HOSTALLOC_WRITECOMBINED = CUDAdrv.CU_MEMHOSTALLOC_WRITECOMBINED
-
 
 function free(buf::DeviceBuffer)
     if buf.ptr != CU_NULL
@@ -82,6 +82,9 @@ end
 ## host buffer
 ##
 ## pinned memory on the CPU, possibly accessible on the GPU
+
+@public HostBuffer, register, unregister,
+        HOSTALLOC_PORTABLE, HOSTALLOC_DEVICEMAP, HOSTALLOC_WRITECOMBINED
 
 struct HostBuffer <: Buffer
     ptr::Ptr{Cvoid}
@@ -109,6 +112,11 @@ function Base.convert(::Type{CuPtr{T}}, buf::HostBuffer) where {T}
     end
 end
 
+
+@deprecate_binding HOSTALLOC_DEFAULT 0 false
+const HOSTALLOC_PORTABLE = CUDAdrv.CU_MEMHOSTALLOC_PORTABLE
+const HOSTALLOC_DEVICEMAP = CUDAdrv.CU_MEMHOSTALLOC_DEVICEMAP
+const HOSTALLOC_WRITECOMBINED = CUDAdrv.CU_MEMHOSTALLOC_WRITECOMBINED
 
 """
     alloc(HostBuffer, bytesize::Integer, [flags])
@@ -163,6 +171,9 @@ end
 ## unified buffer
 ##
 ## managed buffer that is accessible on both the CPU and GPU
+
+@public UnifiedBuffer, prefetch, advise,
+        HOSTREGISTER_PORTABLE, HOSTREGISTER_DEVICEMAP, HOSTREGISTER_IOMEMORY
 
 struct UnifiedBuffer <: Buffer
     ptr::CuPtr{Cvoid}
@@ -226,6 +237,8 @@ end
 
 ## convenience aliases
 
+@public Device, Host, Unified
+
 const Device  = DeviceBuffer
 const Host    = HostBuffer
 const Unified = UnifiedBuffer
@@ -235,6 +248,8 @@ const Unified = UnifiedBuffer
 #
 # typed pointers
 #
+
+@public set!
 
 ## initialization
 
@@ -293,6 +308,8 @@ end
 #
 # utilities
 #
+
+@public info
 
 ## memory info
 

@@ -1,7 +1,6 @@
 # Module-scope global variables
 
-export
-    CuGlobal, get, set
+export CuGlobal
 
 
 """
@@ -47,7 +46,6 @@ function Base.getindex(var::CuGlobal{T}) where T
     cuMemcpyDtoH(val_ref, var, var.buf.bytesize)
     return val_ref[]
 end
-# TODO: import Base: get?
 
 """
     Base.setindex(var::CuGlobal{T}, val::T)

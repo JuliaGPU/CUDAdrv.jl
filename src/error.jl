@@ -1,6 +1,7 @@
 # Error type and decoding functionality
 
 export CuError
+@public name, description
 
 
 """

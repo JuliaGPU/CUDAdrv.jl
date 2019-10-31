@@ -1,7 +1,6 @@
 # Execution control
 
-export
-    CuDim, cudacall
+export CuDim, cudacall
 
 """
     CuDim3(x)

@@ -11,13 +11,13 @@ using Printf
 include("pointer.jl")
 const CUdeviceptr = CuPtr{Cvoid}
 
+include("util.jl")
+
 # low-level wrappers
 include("libcuda_common.jl")
 include("error.jl")
 include("libcuda.jl")
 include("libcuda_aliases.jl")
-
-include("util.jl")
 
 # high-level wrappers
 include("version.jl")

@@ -1,7 +1,6 @@
 # Profiler control
 
-export
-    @profile, @cuprofile
+export @profile
 
 """
     @profile ex

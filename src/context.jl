@@ -1,8 +1,6 @@
 # Context management
 
-export
-    CuContext, destroy!, CuCurrentContext, activate,
-    synchronize, device
+export CuContext, destroy!, CuCurrentContext, activate, synchronize, device
 
 
 ## construction and destruction

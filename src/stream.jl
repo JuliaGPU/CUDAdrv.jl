@@ -1,7 +1,6 @@
 # Stream management
 
-export
-    CuStream, CuDefaultStream, synchronize
+export CuStream, CuDefaultStream, synchronize
 
 
 mutable struct CuStream

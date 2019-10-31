@@ -2,8 +2,7 @@
 #
 # This is meant for interoperability with the CUDA runtime API
 
-export
-    CuPrimaryContext, unsafe_reset!, isactive, flags, setflags!
+export CuPrimaryContext, unsafe_reset!, isactive, flags, setflags!
 
 """
     CuPrimaryContext(dev::CuDevice)

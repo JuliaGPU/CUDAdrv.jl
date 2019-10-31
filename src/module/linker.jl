@@ -1,7 +1,6 @@
 # Linking of different PTX modules
 
-export
-    CuLink, add_data!, add_file!, complete
+export CuLink, add_data!, add_file!, complete
 
 
 """

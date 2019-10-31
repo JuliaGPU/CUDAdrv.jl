@@ -1,5 +1,7 @@
 # Version management
 
+@public version
+
 """
     version()
 
