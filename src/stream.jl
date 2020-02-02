@@ -50,3 +50,20 @@ Return the default stream.
 Wait until a stream's tasks are completed.
 """
 synchronize(s::CuStream) = cuStreamSynchronize(s)
+
+"""
+    query(s::CuStream)
+
+Return `false` if a stream is busy (has task running or queued)
+and `true` if that stream is free.
+"""
+function query(s::CuStream)
+    err = unsafe_cuStreamQuery(s)
+    if err === CUDA_ERROR_NOT_READY
+        return false
+    elseif err === CUDA_SUCCESS
+        return true
+    else
+        throw_api_error(err)
+    end
+end
