@@ -183,11 +183,11 @@ end
 # - WeakRef dict does not unique the key by objectid
 # TODO:
 # - Deal with memory regions/views
-const __pinned_memory = Dict{UInt64, WeakRef}()
+const __pinned_memory = Dict{Ptr, WeakRef}()
 
 function pin(a)
     # use pointer instead of objectid?
-    oid = objectid(a)
+    oid = pointer(a)
     if haskey(__pinned_memory, oid) && __pinned_memory[oid].value !== nothing
         return nothing
     end
