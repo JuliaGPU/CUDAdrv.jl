@@ -141,6 +141,22 @@ if attribute(dev, CUDAdrv.DEVICE_ATTRIBUTE_HOST_REGISTER_SUPPORTED) != 0
 
     Mem.unregister(src)
     # NOTE: don't unregister dst, it's just a mapped pointer
+
+    let hA = rand(UInt8, 512)
+        Mem.pin(hA)
+        # no way to test if something is already registered, sadly...
+        # make sure this doesn't explode -- nothing should happen if we try
+        # to register twice
+        Mem.pin(hA)
+        # by default pin doesn't use DEVICEMAP so we'd have to memcpy
+        # just test that some basic ops work without corrupting memory
+        dA = Mem.alloc(Mem.Device, sizeof(hA))
+        TA = eltype(hA)
+        unsafe_copyto!(typed_pointer(dA, TA), pointer(hA), 512)
+        Mem.set!(typed_pointer(dA, TA), zero(TA), 512)
+        unsafe_copyto!(pointer(hA), typed_pointer(dA, TA), 512)
+        @test all(hA .== zero(TA))
+    end
 end
 
 # unified memory
