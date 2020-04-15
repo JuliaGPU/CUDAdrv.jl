@@ -142,7 +142,7 @@ if attribute(dev, CUDAdrv.DEVICE_ATTRIBUTE_HOST_REGISTER_SUPPORTED) != 0
     Mem.unregister(src)
     # NOTE: don't unregister dst, it's just a mapped pointer
 
-    let hA = rand(UInt8, 512)
+    let hA = rand(UInt8, 512), hB = rand(UInt8, 512)
         Mem.pin(hA)
         # no way to test if something is already registered, sadly...
         # make sure this doesn't explode -- nothing should happen if we try
@@ -156,6 +156,18 @@ if attribute(dev, CUDAdrv.DEVICE_ATTRIBUTE_HOST_REGISTER_SUPPORTED) != 0
         Mem.set!(typed_pointer(dA, TA), zero(TA), 512)
         unsafe_copyto!(pointer(hA), typed_pointer(dA, TA), 512)
         @test all(hA .== zero(TA))
+        # test with a flag
+        Mem.pin(hB, Mem.HOSTREGISTER_DEVICEMAP)
+        Mem.pin(hB)
+        # by default pin doesn't use DEVICEMAP so we'd have to memcpy
+        # just test that some basic ops work without corrupting memory
+        dB = Mem.alloc(Mem.Device, sizeof(hB))
+        TB = eltype(hB)
+        # since pin doesn't return the buffer we can't directly set
+        unsafe_copyto!(typed_pointer(dB, TB), pointer(hB), 512)
+        Mem.set!(typed_pointer(dB, TB), zero(TB), 512)
+        unsafe_copyto!(pointer(hB), typed_pointer(dB, TB), 512)
+        @test all(hB .== zero(TB))
     end
 end
 

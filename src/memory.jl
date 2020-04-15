@@ -185,13 +185,13 @@ end
 # - Deal with memory regions/views
 const __pinned_memory = Dict{Ptr, WeakRef}()
 
-function pin(a)
+function pin(a, flags=0)
     # use pointer instead of objectid?
     oid = pointer(a)
     if haskey(__pinned_memory, oid) && __pinned_memory[oid].value !== nothing
         return nothing
     end
-    ad = Mem.register(Mem.Host, pointer(a), sizeof(a))
+    ad = Mem.register(Mem.Host, pointer(a), sizeof(a), flags)
     finalizer(_ -> Mem.unregister(ad), a)
     __pinned_memory[oid] = WeakRef(a)
     return nothing
