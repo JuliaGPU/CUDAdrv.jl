@@ -185,7 +185,7 @@ end
 # - Deal with memory regions/views
 const __pinned_memory = Dict{Ptr, WeakRef}()
 
-function pin(a, flags=0)
+function pin(a::Array, flags=0)
     # use pointer instead of objectid?
     oid = pointer(a)
     if haskey(__pinned_memory, oid) && __pinned_memory[oid].value !== nothing
