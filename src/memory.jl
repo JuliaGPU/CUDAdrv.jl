@@ -187,13 +187,13 @@ const __pinned_memory = Dict{Ptr, WeakRef}()
 
 function pin(a::Array, flags=0)
     # use pointer instead of objectid?
-    oid = pointer(a)
-    if haskey(__pinned_memory, oid) && __pinned_memory[oid].value !== nothing
+    ptr = pointer(a)
+    if haskey(__pinned_memory, ptr) && __pinned_memory[ptr].value !== nothing
         return nothing
     end
     ad = Mem.register(Mem.Host, pointer(a), sizeof(a), flags)
     finalizer(_ -> Mem.unregister(ad), a)
-    __pinned_memory[oid] = WeakRef(a)
+    __pinned_memory[ptr] = WeakRef(a)
     return nothing
 end
 
