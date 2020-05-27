@@ -1,4 +1,4 @@
-# CUDAdrv.jl
+# ~CUDAdrv.jl~: DEPRECATED, use [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) instead!
 
 *A Julia wrapper for the CUDA driver API.*
 
